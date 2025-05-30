@@ -1,11 +1,16 @@
-import { getKeypairFromFile } from "@solana-developers/helpers";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  getExplorerLink,
+  getKeypairFromFile,
+} from "@solana-developers/helpers";
+import { getMint, getMultisig, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Cluster,
   clusterApiUrl,
   Connection,
   Keypair,
   PublicKey,
+  sendAndConfirmTransaction,
+  Transaction,
 } from "@solana/web3.js";
 import {
   ChainContext,
@@ -17,7 +22,12 @@ import {
   getSolanaSignAndSendSigner,
   SolanaPlatform,
 } from "@wormhole-foundation/sdk-solana";
-import { IdlVersion, SolanaNtt } from "@wormhole-foundation/sdk-solana-ntt";
+import {
+  IdlVersion,
+  NTT,
+  SolanaNtt,
+} from "@wormhole-foundation/sdk-solana-ntt";
+import { bold, parseCommand, parsePublicKey } from "./helpers.js";
 
 /**
  * Keypair Path Config
@@ -96,5 +106,32 @@ const main = async () => {
   console.log("NTT setup successfully using config values:");
   console.log("Token Mint:", NTT_TOKEN_ADDRESS.toBase58());
   console.log("NTT Address:", NTT_ADDRESS.toBase58());
+
+  // Ensure ntt is paused
+  if (!(await ntt.isPaused())) {
+    console.error("Not paused. Please pause NTT and try again.");
+    process.exit(1);
+  }
+
+  // Extract command
+  const { args, command } = parseCommand(process.argv.slice(2));
+  console.log(`Command: ${bold(command)}`);
+
+  // Handle command
+  switch (command) {
+    case "transfer": {
+      await handleTransfer(args, ntt, payer);
+      break;
+    }
+    case "claim": {
+      await handleClaim(args, ntt, payer, additionalSigners);
+      break;
+    }
+    // Should be unreachable as parseCommand should early return
+    default: {
+      console.error(`Unexpected command: ${command}`);
+      process.exit(1);
+    }
+  }
 };
 main();
