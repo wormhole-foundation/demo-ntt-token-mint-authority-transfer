@@ -17,7 +17,7 @@ cd demo-ntt-token-mint-authority-transfer
 npm install
 ```
 
-3. Replace `<TODO>`s and verify the following in the `transfer-mint-authority.ts` script:
+3. Replace `<TODO>`'s and verify the following in the [`transfer-mint-authority.ts`](https://github.com/wormhole-foundation/demo-ntt-token-mint-authority-transfer/blob/main/src/transfer-mint-authority.ts#L32:L56) script:
 
    - Keypair Path Config
    - Network Config
@@ -36,8 +36,8 @@ npm install
          "chains": {
             "Solana": {
             "version": "3.x.x",
-      -      "paused": false,
-      +      "paused": true,
+     -      "paused": false,
+     +      "paused": true,
             ...
          }
       }
@@ -52,20 +52,20 @@ npm install
 
 ## Usage:
 
-Transfers token mint authority to new authority:
+### Transfer token mint authority to new authority:
 
 ```bash
 npm run transfer <NEW_AUTHORITY>
 ```
 
 > [!NOTE]
-> The above only executes the first step of the transfer. Run `npm run claim <NEW_AUTHORITY>` to complete the transfer and unpause NTT.
+> The above only executes the first step of the transfer. Run `npm run claim <NEW_AUTHORITY>` to complete the transfer.
 
-Completes token mint authority transfer to new authority:
+### Complete token mint authority transfer to new authority:
 
 ```bash
 npm run claim <NEW_AUTHORITY>
 ```
 
 > [!NOTE]
-> In case of claiming via SPL Multisig with `m > 1`, make sure `ADDITIONAL_SIGNER_KEYPAIR_PATHS` (`Keypair Path Config`) in the `transfer-mint-authority.ts` script is correct.
+> In case of claiming via SPL Multisig with `m > 1`, make sure `ADDITIONAL_SIGNER_KEYPAIR_PATHS` (`Keypair Path Config`) in the [`transfer-mint-authority.ts`](https://github.com/wormhole-foundation/demo-ntt-token-mint-authority-transfer/blob/main/src/transfer-mint-authority.ts#L36) script is correct.
