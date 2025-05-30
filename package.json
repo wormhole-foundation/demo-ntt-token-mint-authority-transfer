@@ -1,0 +1,21 @@
+{
+  "name": "demo-ntt-token-mint-authority-transfer",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "scripts": {
+    "transfer": "npx tsx src/transfer-mint-authority.ts transfer",
+    "claim": "npx tsx src/transfer-mint-authority.ts claim"
+  },
+  "dependencies": {
+    "@solana-developers/helpers": "^2.8.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.0",
+    "@wormhole-foundation/sdk": "^1.13.3",
+    "@wormhole-foundation/sdk-solana": "^1.13.3",
+    "@wormhole-foundation/sdk-solana-ntt": "^0.8.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
