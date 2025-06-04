@@ -32,14 +32,14 @@ import { bold, parseCommand, parsePublicKey } from "./helpers.js";
 /**
  * Keypair Path Config
  */
-const PAYER_KEYPAIR_PATH = "<TODO>"; // Path to payer Keypair
+const PAYER_KEYPAIR_PATH = "<TODO>"; // Path to payer Keypair (e.g: /whYfLTP5QJTRCyGW2sRePjdgt9D8w7DddYu3L6jC69.json.json)
 const ADDITIONAL_SIGNER_KEYPAIR_PATHS: string[] = [""]; // Path to Keypairs of additional signers of SPL Multisig
 
 /**
  * Network Config
  */
 const NETWORK: Network = "Testnet"; // Wormhole network to use
-const CLUSTER: Cluster = "devnet"; // Solana cluster to use
+const CLUSTER: Cluster = "devnet"; // Solana cluster to use - Solana devnet is compatible with Wormhole Testnet cluster!
 const CONNECTION = new Connection(clusterApiUrl(CLUSTER)); // Solana connection object to use
 
 /**
@@ -108,6 +108,7 @@ const handleTransfer = async (
     console.error(
       "Token mint authority transfer is only supported for versions >= 3.x.x"
     );
+    console.error("Use 'ntt upgrade' to upgrade the NTT contract to a specific version.");
     process.exit(1);
   }
 
@@ -174,6 +175,7 @@ const handleClaim = async (
     console.error(
       "Token mint authority transfer is only supported for versions >= 3.x.x"
     );
+    console.error("Use 'ntt upgrade' to upgrade the NTT contract to a specific version.");
     process.exit(1);
   }
 

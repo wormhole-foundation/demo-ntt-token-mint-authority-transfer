@@ -18,6 +18,7 @@ npm install
 ```
 
 3. Replace `<TODO>`'s and verify the following in the [`transfer-mint-authority.ts`](https://github.com/wormhole-foundation/demo-ntt-token-mint-authority-transfer/blob/main/src/transfer-mint-authority.ts#L32:L56) script:
+You will find most of the needed info in your `deployment.json` file.
 
    - Keypair Path Config
    - Network Config
