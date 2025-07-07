@@ -140,9 +140,11 @@ const handleTransfer = async (
   transaction.feePayer = payer.publicKey;
   const { blockhash } = await CONNECTION.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
-  const tx = await sendAndConfirmTransaction(CONNECTION, transaction, [payer]);
+  const tx = await sendAndConfirmTransaction(CONNECTION, transaction, [payer], {
+    commitment: 'finalized'
+  });
   console.log(
-    `✅ Transaction confirmed, explorer link is: ${getExplorerLink(
+    `✅ Transaction finalized, explorer link is: ${getExplorerLink(
       "transaction",
       tx,
       CLUSTER
