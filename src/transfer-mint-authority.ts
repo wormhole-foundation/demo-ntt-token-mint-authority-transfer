@@ -24,7 +24,7 @@ import {
   NTT,
   SolanaNtt,
 } from "@wormhole-foundation/sdk-solana-ntt";
-import { bold, parseCommand, parsePublicKey } from "./helpers.js";
+import { bold, parseCommand, parsePublicKey, getTransactionExplorerLink, getTokenExplorerLink } from "./helpers.js";
 
 /**
  * Keypair Path Config
@@ -94,7 +94,7 @@ const handleTransfer = async (
   }
 
   // Verify version
-  const version = await NTT.getVersion(connection, ntt.program.programId);
+  const version = await NTT.getVersion(connection, ntt.program.programId, payer.publicKey);
   const major = Number(version.split(".")[0]);
   if (major < 3) {
     console.error(
@@ -135,10 +135,10 @@ const handleTransfer = async (
   const tx = await sendAndConfirmTransaction(connection, transaction, [payer], {
     commitment: 'finalized'
   });
-  console.log(`✅ Transaction finalized, explorer link is: ${getExplorerLink(
-    "transaction",
+  console.log(`✅ Transaction finalized, explorer link is: ${getTransactionExplorerLink(
     tx,
-    CLUSTER
+    CLUSTER,
+    CHAIN
   )}`);
   console.log(
     `❗ Re-run the script with claim ${newAuthority.toBase58()} to complete the transfer`
@@ -162,7 +162,8 @@ const handleClaim = async (
   }
 
   // Verify version
-  const version = await NTT.getVersion(connection, ntt.program.programId);
+  // const version = await NTT.getVersion(connection, ntt.program.programId);
+  const version = await NTT.getVersion(connection, ntt.program.programId, payer.publicKey);
   const major = Number(version.split(".")[0]);
   if (major < 3) {
     console.error(
@@ -240,17 +241,17 @@ const handleClaim = async (
     ...additionalSigners,
   ]);
   console.log(
-    `✅ Transaction confirmed, explorer link is: ${getExplorerLink(
-      "transaction",
+    `✅ Transaction confirmed, explorer link is: ${getTransactionExplorerLink(
       tx,
-      CLUSTER
+      CLUSTER,
+      CHAIN
     )}`
   );
   console.log(
-    `✅ Mint authority has been transferred successfully: ${getExplorerLink(
-      "address",
+    `✅ Mint authority has been transferred successfully: ${getTokenExplorerLink(
       NTT_TOKEN_ADDRESS.toBase58(),
-      CLUSTER
+      CLUSTER,
+      CHAIN
     )}`
   );
 };

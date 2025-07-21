@@ -1,4 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
+import { Cluster } from "@solana/web3.js";
+import { getExplorerLink } from "@solana-developers/helpers";
 
 const COMMANDS = {
   transfer: {
@@ -76,4 +78,22 @@ export const parsePublicKey = (args: readonly string[]) => {
  */
 export const bold = (input: string) => {
   return `\x1B[1m${input}\x1B[22m`;
+};
+
+
+export const getTransactionExplorerLink = (signature: string, cluster: Cluster, chain: string) => {
+  if (chain === "Fogo") {
+    return `https://fogoscan.com/tx/${signature}?cluster=testnet`;
+  }
+  // Use default Solana explorer for Solana chain
+  return getExplorerLink("transaction", signature, cluster);
+};
+
+
+export const getTokenExplorerLink = (address: string, cluster: Cluster, chain: string) => {
+  if (chain === "Fogo") {
+    return `https://fogoscan.com/token/${address}?cluster=testnet`;
+  }
+  // Use default Solana explorer for Solana chain
+  return getExplorerLink("address", address, cluster);
 };
