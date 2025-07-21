@@ -135,7 +135,6 @@ const handleTransfer = async (
   const tx = await sendAndConfirmTransaction(connection, transaction, [payer], {
     commitment: 'finalized'
   });
-  
   console.log(`✅ Transaction finalized, explorer link is: ${getExplorerLink(
     "transaction",
     tx,
