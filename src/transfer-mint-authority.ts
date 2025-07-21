@@ -5,7 +5,6 @@ import {
 import { getMint, getMultisig, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Cluster,
-  clusterApiUrl,
   Connection,
   Keypair,
   PublicKey,
@@ -13,8 +12,6 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import {
-  ChainContext,
-  contracts,
   Network,
   Wormhole,
 } from "@wormhole-foundation/sdk";
@@ -36,44 +33,38 @@ const PAYER_KEYPAIR_PATH = "<TODO>"; // Path to payer Keypair (e.g: /whYfLTP5QJT
 const ADDITIONAL_SIGNER_KEYPAIR_PATHS: string[] = [""]; // Path to Keypairs of additional signers of SPL Multisig
 
 /**
- * Network Config
+ * Network & Chain Config
  */
-const NETWORK: Network = "Testnet"; // Wormhole network to use
-const CLUSTER: Cluster = "devnet"; // Solana cluster to use - Solana devnet is compatible with Wormhole Testnet cluster!
-const CONNECTION = new Connection(clusterApiUrl(CLUSTER)); // Solana connection object to use
+type ChainType = "Solana" | "Fogo";
 
-/**
- * SPL Token Config
- */
-const TOKEN_PROGRAM = TOKEN_PROGRAM_ID; // Token Program to use
-const NTT_TOKEN_ADDRESS = new PublicKey("<TODO>"); // Address of deployed token mint
+const CHAIN: ChainType = "Fogo"; // Change to "Solana" or "Fogo"
+const NETWORK: Network = "Testnet"; // Wormhole network to use
+const CLUSTER: Cluster = "testnet"; // Solana cluster to use - Solana devnet is compatible with Wormhole Testnet cluster!
+
 
 /**
  * NTT Config
  */
 const VERSION: IdlVersion = "3.0.0"; // Deployed NTT version
+const NTT_TOKEN_ADDRESS = new PublicKey("<TODO>"); // Address of deployed token mint
 const NTT_ADDRESS = new PublicKey("<TODO>"); // Address of deployed NTT manager
 const WH_TRANSCEIVER_ADDRESS = new PublicKey("<TODO>"); // Address of deployed Wormhole transceiver
 
 /**
- * Constructs `SolanaNtt` object from the config values defined
+ * Constructs `SolanaNtt` object from the config values defined, using dynamic connection from Wormhole SDK
  */
 const setupSolanaNtt = async (payer: Keypair) => {
-  const CORE_BRIDGE_ADDRESS = contracts.coreBridge(NETWORK, "Solana");
-  const w = new Wormhole(NETWORK, [SolanaPlatform], {
-    chains: { Solana: { contracts: { coreBridge: CORE_BRIDGE_ADDRESS } } },
-  });
-  const ctx: ChainContext<typeof NETWORK, "Solana"> = w
-    .getPlatform("Solana")
-    .getChain("Solana", CONNECTION);
-  const signer = await getSolanaSignAndSendSigner(CONNECTION, payer, {});
-  const sender = Wormhole.parseAddress("Solana", signer.address());
+  const w = new Wormhole(NETWORK, [SolanaPlatform]);
+  const ch = w.getChain(CHAIN);
+  const connection: Connection = await ch.getRpc();
+  const signer = await getSolanaSignAndSendSigner(connection, payer, {});
+  const sender = Wormhole.parseAddress(CHAIN, signer.address());
   const ntt = new SolanaNtt(
     NETWORK,
-    "Solana",
-    CONNECTION,
+    CHAIN,
+    connection,
     {
-      ...ctx.config.contracts,
+      ...ch.config.contracts,
       ntt: {
         token: NTT_TOKEN_ADDRESS.toBase58(),
         manager: NTT_ADDRESS.toBase58(),
@@ -84,7 +75,7 @@ const setupSolanaNtt = async (payer: Keypair) => {
     },
     VERSION
   );
-  return { ntt, signer, sender };
+  return { ntt, signer, sender, connection };
 };
 
 /**
@@ -92,8 +83,9 @@ const setupSolanaNtt = async (payer: Keypair) => {
  */
 const handleTransfer = async (
   args: string[],
-  ntt: SolanaNtt<typeof NETWORK, "Solana">,
-  payer: Keypair
+  ntt: SolanaNtt<Network, ChainType>,
+  payer: Keypair,
+  connection: Connection
 ) => {
   const newAuthority = parsePublicKey(args);
   if (!newAuthority) {
@@ -102,7 +94,7 @@ const handleTransfer = async (
   }
 
   // Verify version
-  const version = await NTT.getVersion(CONNECTION, ntt.program.programId);
+  const version = await NTT.getVersion(connection, ntt.program.programId);
   const major = Number(version.split(".")[0]);
   if (major < 3) {
     console.error(
@@ -116,7 +108,7 @@ const handleTransfer = async (
   const config = await ntt.getConfig();
   let multisigTokenAuthority: PublicKey | undefined;
   const mintInfo = await getMint(
-    CONNECTION,
+    connection,
     config.mint,
     undefined,
     config.tokenProgram
@@ -138,18 +130,17 @@ const handleTransfer = async (
     })
   );
   transaction.feePayer = payer.publicKey;
-  const { blockhash } = await CONNECTION.getLatestBlockhash();
+  const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
-  const tx = await sendAndConfirmTransaction(CONNECTION, transaction, [payer], {
+  const tx = await sendAndConfirmTransaction(connection, transaction, [payer], {
     commitment: 'finalized'
   });
-  console.log(
-    `✅ Transaction finalized, explorer link is: ${getExplorerLink(
-      "transaction",
-      tx,
-      CLUSTER
-    )}`
-  );
+  
+  console.log(`✅ Transaction finalized, explorer link is: ${getExplorerLink(
+    "transaction",
+    tx,
+    CLUSTER
+  )}`);
   console.log(
     `❗ Re-run the script with claim ${newAuthority.toBase58()} to complete the transfer`
   );
@@ -160,9 +151,10 @@ const handleTransfer = async (
  */
 const handleClaim = async (
   args: string[],
-  ntt: SolanaNtt<typeof NETWORK, "Solana">,
+  ntt: SolanaNtt<Network, ChainType>,
   payer: Keypair,
-  additionalSigners: Keypair[]
+  additionalSigners: Keypair[],
+  connection: Connection
 ) => {
   const newAuthority = parsePublicKey(args);
   if (!newAuthority) {
@@ -171,7 +163,7 @@ const handleClaim = async (
   }
 
   // Verify version
-  const version = await NTT.getVersion(CONNECTION, ntt.program.programId);
+  const version = await NTT.getVersion(connection, ntt.program.programId);
   const major = Number(version.split(".")[0]);
   if (major < 3) {
     console.error(
@@ -185,7 +177,7 @@ const handleClaim = async (
   const config = await ntt.getConfig();
   let multisigTokenAuthority: PublicKey | undefined;
   const mintInfo = await getMint(
-    CONNECTION,
+    connection,
     config.mint,
     undefined,
     config.tokenProgram
@@ -202,10 +194,10 @@ const handleClaim = async (
   let isMultisig = false;
   try {
     const multisigInfo = await getMultisig(
-      CONNECTION,
+      connection,
       newAuthority,
       undefined,
-      TOKEN_PROGRAM
+      TOKEN_PROGRAM_ID
     );
     isMultisig = true;
     if (multisigInfo.m > additionalSigners.length + 1) {
@@ -242,9 +234,9 @@ const handleClaim = async (
         })
   );
   transaction.feePayer = payer.publicKey;
-  const { blockhash } = await CONNECTION.getLatestBlockhash();
+  const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
-  const tx = await sendAndConfirmTransaction(CONNECTION, transaction, [
+  const tx = await sendAndConfirmTransaction(connection, transaction, [
     payer,
     ...additionalSigners,
   ]);
@@ -278,7 +270,7 @@ const main = async () => {
   );
 
   // Setup ntt from config
-  const { ntt } = await setupSolanaNtt(payer);
+  const { ntt, connection } = await setupSolanaNtt(payer);
 
   console.log("NTT setup successfully using config values:");
   console.log("Token Mint:", NTT_TOKEN_ADDRESS.toBase58());
@@ -297,14 +289,13 @@ const main = async () => {
   // Handle command
   switch (command) {
     case "transfer": {
-      await handleTransfer(args, ntt, payer);
+      await handleTransfer(args, ntt, payer, connection);
       break;
     }
     case "claim": {
-      await handleClaim(args, ntt, payer, additionalSigners);
+      await handleClaim(args, ntt, payer, additionalSigners, connection);
       break;
     }
-    // Should be unreachable as parseCommand should early return
     default: {
       console.error(`Unexpected command: ${command}`);
       process.exit(1);
