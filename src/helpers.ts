@@ -83,7 +83,9 @@ export const bold = (input: string) => {
 
 export const getTransactionExplorerLink = (signature: string, cluster: Cluster, chain: string) => {
   if (chain === "Fogo") {
-    return `https://fogoscan.com/tx/${signature}?cluster=testnet`;
+    // Derive Fogo cluster from Solana cluster: mainnet-beta -> mainnet, otherwise -> testnet
+    const fogoscanCluster = cluster === "mainnet-beta" ? "mainnet" : "testnet";
+    return `https://fogoscan.com/tx/${signature}?cluster=${fogoscanCluster}`;
   }
   // Use default Solana explorer for Solana chain
   return getExplorerLink("transaction", signature, cluster);
@@ -92,7 +94,8 @@ export const getTransactionExplorerLink = (signature: string, cluster: Cluster, 
 
 export const getTokenExplorerLink = (address: string, cluster: Cluster, chain: string) => {
   if (chain === "Fogo") {
-    return `https://fogoscan.com/token/${address}?cluster=testnet`;
+    const fogoscanCluster = cluster === "mainnet-beta" ? "mainnet" : "testnet";
+    return `https://fogoscan.com/token/${address}?cluster=${fogoscanCluster}`;
   }
   // Use default Solana explorer for Solana chain
   return getExplorerLink("address", address, cluster);
