@@ -11,7 +11,7 @@
 		"@solana-developers/helpers": "^2.8.0",
 		"@solana/spl-token": "^0.4.13",
 		"@solana/web3.js": "^1.98.0",
-		"@wormhole-foundation/sdk": "3.11.0",
+		"@wormhole-foundation/sdk": "4.7.2",
 		"@wormhole-foundation/sdk-solana": "3.11.0",
 		"@wormhole-foundation/sdk-solana-ntt": "4.0.2",
 		"dotenv": "^16.4.7"
