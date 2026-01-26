@@ -13,12 +13,12 @@
 		"@solana/web3.js": "^1.98.0",
 		"@wormhole-foundation/sdk": "4.7.4",
 		"@wormhole-foundation/sdk-solana": "4.8.0",
-		"@wormhole-foundation/sdk-solana-ntt": "4.0.2",
+		"@wormhole-foundation/sdk-solana-ntt": "4.0.10",
 		"dotenv": "^16.4.7"
 	},
 	"overrides": {
-		"@wormhole-foundation/sdk-base": "3.11.0",
-		"@wormhole-foundation/sdk-definitions": "3.11.0"
+		"@wormhole-foundation/sdk-base": "4.8.0",
+		"@wormhole-foundation/sdk-definitions": "4.8.0"
 	},
 	"devDependencies": {
 		"typescript": "^5.8.3"
